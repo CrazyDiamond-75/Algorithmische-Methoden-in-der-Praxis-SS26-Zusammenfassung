@@ -1,0 +1,119 @@
+\chapter{Techniken}
+
+In Programmierwettbewerben werden meistens Eingaben und Ausgaben, sowie Limits für die geheimen Eingaben bereitgestellt.
+Diese Einschränkungen können bereits ein guter Startpunkt sein, um einzuschätzen, wie langsam im worst-case ein naiver Algorithmus wäre.
+
+\section{Schnelles Parsen}
+Jeglicher Algorithmus muss erst mal die Eingabe lesen und parsen.
+Das Erfolgt meistens über die Standard-Eingabe \lstinline|stdin|.
+Meistens ist es schlau\footnote{Außer bei \emph{ad-hoc} Problemen} das Laden der Eingabe komplett vor der Berechnung in einem Schritt zu vollziehen -- in Python geht das zum Beispiel so:
+\begin{lstlisting}
+from sys import stdin
+
+tokens = iter(stdin.read().split())
+\end{lstlisting}
+Um nun einzelne Eingaben zu parsen, kann einfach auf den jeweils nächsten String mit \lstinline|next(tokens)| zugegriffen werden, und evaluiert werden, bsp. \lstinline|int($\cdot$)|.
+
+\section{Einfache und Abstrakte Datenstrukturen}
+Um komplexere Datenstrukturen zu verwenden kann es offenbar Vor- und Nachteile haben sie mithilfe anderer, einfacherer Datenstrukturen zu implementieren.
+Dabei sollte individuell abgewägt werden.
+\begin{description}
+    \item[Statisches Array] Ein klassisches Feld ermöglicht konstante Laufzeit beim Lesen und Schreiben eines Elementes, jedoch ist die Größe begrenzt und es muss manuell kopiert werden, wenn das Array vergrößert oder verkleinert werden soll.
+
+    \item[Verknüpfte Elemente] Eine \emph{linked list} besteht aus einzelnen Elementen, die mithilfe von Referenzen auf irgendwie verbundene Elemente zeigen.
+        Beispielweise kann auf ein nächstes und vorheriges Element gezeigt werden, um einen Listenprototypen zu implementieren.
+        Der Vorteil dieser Datenstruktur ist, dass in konstanter Laufzeit Elemente speichereffizient angehängt werden können, jedoch ist es nicht möglich konstant auf beliebige Elemente zuzugreifen.
+        Dementsprechend lässt sich beispielweise binäre Suche nicht in \(\O(\log n)\) implementieren, sondern nur in \(\O(n)\).
+        Außerdem enstehen offenbar kleine Verzögerungen bei der Speicherallokation und Deallokation, da dies nicht im Batch, sondern einzeln passiert.
+
+    \item[Zweistufiges Array] Alternativ zu einem einzelnen Array können auch die gleichen Daten in ein zweidimensionalen Array partitioniert werden, indem man das originale Feld in gleich große Teilfelder aufteilt.
+        Das hat den Vorteil, dass man leichter Elemente in ein nicht ganz volles Teilfeld am Ende hinzufügen kann, man aber immer noch konstant schnell (in zwei Schritten) auf einzelne Elemente zugreifen kann.
+
+    \item[Verknüpfte Arrays] Hierbei handelt es sich um ein verkettete Liste, die selbst Felder speichert.
+        Dies ist recht ähnlich zu dem zweistufigen Array, nur mit dem Unterschied, dass noch leichter hinzugefügt werden kann, jedoch der konstant schnelle Zugriff nicht mehr möglich ist.
+
+    \item[Bucket List] Eine Bucket List ist sozusagen das Gegenteil von einem verknüpften Array, wo stattdessen ein Feld einzelne verkettete Listen speichert.
+\end{description}
+
+\subsection{Stack, Queue, und Deque}
+Mithilfe der definierten Datenstrukturen lassen sich abstrakte Datenstrukturen implementieren.
+\begin{description}
+    \item[Stack] In einem Stack werden Daten auf bzw. vom Speicher gelegt.
+        Hierfür werden die Prototypen \lstinline|top()|, \lstinline|pop()|, und \lstinline|push(x)| implementiert, die jeweils des oberste Element zurückgeben, das oberste Element entfernen und zurückgeben, und ein Element auf den Stack legen.
+
+    \item[Queue] In einer Queue werden Daten hinten an den Speicher gelegt, und vorne entfernt.
+        Es werden die Prototypen \lstinline|front()|, \lstinline|pop()|, und \lstinline|push(x)| implementiert, die jeweils das vorderste Element zurückgeben, das vorderste Element entfernen und zurückgeben, und ein Element hinten an die Queue anfügen.
+
+    \item[Deque] Eine Deque ist eine Datenstruktur, die gleichzeitig Queue und Stack realisiert.
+\end{description}
+Alle Operationen dieser Datenstrukturen sind in konstanter Laufzeit implementierbar mithilfe verketteter Listen, wenn man Zeiger zum ersten/letzten Element speichert, die automatisch aktualisiert werden.
+Alternativ ist es aber auch möglich, wenn man eine maximale Größe spezifiziert, die Datenstrukturen mithilfe statischer Arrays zu implementieren.
+
+\subsection{Liste}
+Eine weitere abstrakte Datenstruktur ist die Liste, welche das Lesen, Einfügen, und Löschen an beliebigen Positionen realisieren soll.
+
+Hierbei gibt es mehrere Möglichkeiten wieder diesen Typen zu implementieren.
+Verwendet man eine verkettete Liste ist das Einfügen/Löschen in \(\O(1)\) und der Zugriff in \(\O(n)\) implementierbar.
+Verwendet man stattdessen naiv ein statisches Array, ist das Einfügen/Löschen in \(\O(n)\) und der Zugriff in \(\O(1)\) realisierbar.
+
+Es ist aber möglich eine amortisierte Laufzeit von \(\O(1)\) für das Einfügen/Löschen am Ende zu erreichen mit einem statischen Array, indem das Feld regelmäßig um einen Faktor vergrößert bzw. verkleinert wird, sodass Elementen selten kopiert werden müssen -- das nennt man dann auch ein \emph{dynamisches Array}.
+Übliche Faktoren zum Vergrößern und Verkleinern liegen zwischen \(1.5\) und \(2\).
+
+\subsection{Bäume}
+Allgemein sind Bäume zusammenhängende Graphen ohne Zyklen.
+Sie können über verknüpfte Elemente dargestellt werden.
+Dabei können einzelne Elemente unterschiedlich benachbarte Elemente indizieren.
+Beispielweise kann jedes Element seinen Elternknoten speichern, oder jedes Element speichert seine Kinder.
+Diese Implementierungen nennt man \emph{bottom-up} und \emph{top-down}.
+
+Es ist wieder auch möglich (binäre) Bäume mithilfe von statischen Arrays zu implementieren, indem die einzelne Ebenen des Baumes als Array aufgezählt werden.
+Somit kann für einen Knoten \(i\) die Position eines Vorgängers durch \(\lfloor i / 2 \rfloor\), sowie die Kinder mit \(2i\) und \(2i+1\) bestimmt werden.
+
+\subsubsection{Suchbäume}
+Enthalten einzelne Knoten einen Schlüsselwert, lassen sich (binäre) Suchbäume definieren dadurch, dass für alle Elemente der Wert des linken Kindknotens kleiner ist als der Schlüsselwert, der nun wieder kleiner ist als der wert des rechte Knotens.
+
+Hier existieren spezielle balancierende Varianten, wie den Rot-Schwarz-Baum, wo das Suchen, Einfügen, und Entfernen im Baum in \(\O(\log n)\) implementiert werden kann.
+
+\subsubsection{Heaps}
+Heaps sind spezielle Bäume, bei denen für alle Knoten einer Ebene gilt, dass sie kleiner (\emph{Min-Heap}) bzw. größer (\emph{Max-Heap}) sind als ihre Kinder.
+
+In Heaps wird das Einfügen eines Elementes sowie das Entfernen der Wurzel implementiert.
+Das ist möglich in jeweils \(\O(\log n)\), durch eine Helfer-Funktion \emph{heapify}, bei der jeweils Elemente zwischen Ebenen getauscht werden, bis die Heap-Eigenschaft wiederhergestellt ist.
+Beim Entfernen wird dabei die Wurzel entfernt und das letzte Element des Heaps in die Wurzel eingefügt, nachdem heapify auf die Wurzel losgelassen wird.
+Beim Einfügen passiert das gleiche, nur, dass das neue Element versucht wird an der höchsten Ebene eingefügt zu werden.
+Muss ein Element getauscht werden, wird mit dem verschobenen Element auf die gleiche Art weitergemacht.
+
+\subsection{Priority Queue}
+Die Priority Queue ist eine Queue, bei der ein Schlüsselwert (Priorität) bei einzelnen Elementen bestimmt, welche Elemente in welcher Reihenfolge aus der Queue entfernt werden.
+Hier werden (bei einer Max-Priority Queue) die Prototypen \lstinline|maximum()|, \lstinline|extractMax()|, und \lstinline|insert(x, p)| realisiert.
+
+Offenbar lassen sich Priority Queues einfach schnell mithilfe von Heaps implementieren.
+Dann kommt man auf \(\O(\log n)\) für \lstinline|insert| und \lstinline|extractMax|, sowie \(\O(1)\) für \lstinline|maximum|.
+
+\subsection{Graphen}
+\todo[inline]{Hier weitermachen ab Kapitel 7!}
+
+\subsection{Dictionaries}
+Ein Dictionary stellt eine Abbildung zwischen Schlüsseln und Werten dar.
+Dabei sind die Typen von Schlüsseln und Werten nicht beschränkt!
+Es werden die Prototypen \lstinline|find(k)|, \lstinline|erase(k)|, und \lstinline|insert(k, v)| realisiert, die jeweils einen Wert durch seinen Schlüssel finden, ein Wert/Schlüssel-Paar mithilfe des Schlüssels löschen, und ein Wert/Schlüssel-Paar einfügen.
+
+Dictionaries lassen sich durch Suchbäume implementieren, wobei alle Operationen in \(\O(\log(n))\) möglich werden, wobei angenommen werden muss, dass der Schlüssel-Typ vergleichbar ist.
+
+Alternativ lassen sich Dictionaries über sog. \emph{Hash-Tabellen} implementieren, wo ein Schlüsselwert in einen numerischen Typ umgewandelt wird, welcher dann als Index in einer Bucket List den Bucket mit dem gesuchten Wert/Schlüssel Paar findet.
+Dann muss in diesem Bucket nach dem Paar gesucht werden.
+Meistens sind jegliche Operationen in \(\O(1)\) nutzbar, jedoch ist es möglich, dass es zu Kollisionen kommt, bei einer Hash-Funktion, wodurch es zu \(\O(n)\) bei nicht-vergleichbaren, und \(\O(\log n)\) bei vergleichbaren Daten\footnote{Bei Kollisionen kann man einfach in einem Suchbaum suchen bzw. jenen erweitern.} kommen kann.
+Um die Kollisionen zu reduzieren, lässt sich auch die Menge an Buckets vergrößern, was dann natürlich leider den benötigten Speicher stark steigen lassen kann.
+
+\subsection{Sets}
+Mengen oder eng. \emph{Sets} stellen die folgenden Prototypen für Werte eines Typen dar:
+\lstinline|find(A, x)| -- gibt das Element zurück, wenn es in der Menge ist.
+\lstinline|erase(A, x)| -- entfernt das Element von der Menge.
+\lstinline|insert(A, x)| -- fügt das Element in der Menge hinzu.
+\lstinline|union(A, B)| -- vereinigt beide Mengen.
+\lstinline|cut(A, B)| -- berechnet die Schnittmenge.
+\lstinline|diff(A, B)| -- berechnet die Differenz der Menge zur Zweiten.
+
+Mengen lassen sich als Dictionary implementieren, wobei der Wert als Schlüssel verwendet wird.
+
+\subsection{Union-Find}
