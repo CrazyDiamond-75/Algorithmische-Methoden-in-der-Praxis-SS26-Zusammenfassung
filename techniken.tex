@@ -1,9 +1,13 @@
-\chapter{Techniken}
+\section{Einleitung}
+Die Vorlesung beschäftigt sich mit verschiedenen Programmiertechniken, welche angewendet werden können um algorithmisch zu optimieren.
+Man könnte also sagen, das diese Vorlesung ähnlich wie \emph{Hochleistungsrechnen} Programme beschleunigt, nur nicht durch die Hardware, sondern durch schlauere Algorithmen.
+
+Die Techniken werden gerne in Programmierwettbewerben angewendet und gelehrt, weswegen sich die Vorlesung auch mit jenen auseinandersetzt.
 
 In Programmierwettbewerben werden meistens Eingaben und Ausgaben, sowie Limits für die geheimen Eingaben bereitgestellt.
 Diese Einschränkungen können bereits ein guter Startpunkt sein, um einzuschätzen, wie langsam im worst-case ein naiver Algorithmus wäre.
 
-\section{Schnelles Parsen}
+\subsection{Schnelles Parsen}
 Jeglicher Algorithmus muss erst mal die Eingabe lesen und parsen.
 Das Erfolgt meistens über die Standard-Eingabe \lstinline|stdin|.
 Meistens ist es schlau\footnote{Außer bei \emph{ad-hoc} Problemen} das Laden der Eingabe komplett vor der Berechnung in einem Schritt zu vollziehen -- in Python geht das zum Beispiel so:
@@ -98,7 +102,7 @@ Ein Dictionary stellt eine Abbildung zwischen Schlüsseln und Werten dar.
 Dabei sind die Typen von Schlüsseln und Werten nicht beschränkt!
 Es werden die Prototypen \lstinline|find(k)|, \lstinline|erase(k)|, und \lstinline|insert(k, v)| realisiert, die jeweils einen Wert durch seinen Schlüssel finden, ein Wert/Schlüssel-Paar mithilfe des Schlüssels löschen, und ein Wert/Schlüssel-Paar einfügen.
 
-Dictionaries lassen sich durch Suchbäume implementieren, wobei alle Operationen in \(\O(\log(n))\) möglich werden, wobei angenommen werden muss, dass der Schlüssel-Typ vergleichbar ist.
+Dictionaries lassen sich durch Suchbäume implementieren, wobei alle Operationen in \(\O(\log n)\) möglich werden, wobei angenommen werden muss, dass der Schlüssel-Typ vergleichbar ist.
 
 Alternativ lassen sich Dictionaries über sog. \emph{Hash-Tabellen} implementieren, wo ein Schlüsselwert in einen numerischen Typ umgewandelt wird, welcher dann als Index in einer Bucket List den Bucket mit dem gesuchten Wert/Schlüssel Paar findet.
 Dann muss in diesem Bucket nach dem Paar gesucht werden.
@@ -107,13 +111,118 @@ Um die Kollisionen zu reduzieren, lässt sich auch die Menge an Buckets vergrö�
 
 \subsection{Sets}
 Mengen oder eng. \emph{Sets} stellen die folgenden Prototypen für Werte eines Typen dar:
-\lstinline|find(A, x)| -- gibt das Element zurück, wenn es in der Menge ist.
-\lstinline|erase(A, x)| -- entfernt das Element von der Menge.
-\lstinline|insert(A, x)| -- fügt das Element in der Menge hinzu.
-\lstinline|union(A, B)| -- vereinigt beide Mengen.
-\lstinline|cut(A, B)| -- berechnet die Schnittmenge.
-\lstinline|diff(A, B)| -- berechnet die Differenz der Menge zur Zweiten.
+\lstinline|find(A, x)| gibt das Element zurück, wenn es in der Menge ist.
+\lstinline|erase(A, x)| entfernt das Element von der Menge.
+\lstinline|insert(A, x)| fügt das Element in der Menge hinzu.
+\lstinline|union(A, B)| vereinigt beide Mengen.
+\lstinline|cut(A, B)| berechnet die Schnittmenge.
+\lstinline|diff(A, B)| berechnet die Differenz der Menge zur Zweiten.
 
 Mengen lassen sich als Dictionary implementieren, wobei der Wert als Schlüssel verwendet wird.
 
 \subsection{Union-Find}
+Die Union-Find, auch \emph{disjoint-set}, ist eine Datenstruktur, die eine Partition einer Menge speichert.
+Sie bietet folgende Prototypen an:
+\lstinline|makeSet(x)| erzeugt eine Menge mit einem Element.
+\lstinline|findSet(x)| gibt die Menge zurück, in welcher das Element sich befindet.
+\lstinline|union(x, y)| vereinigt die Mengen der beiden Elemente.
+
+Union-Find kann mithilfe von verketteten Listen implementiert werden, dann käme man auf \(\O(1)\) für \lstinline|makeSet(x)|, \(\O(1)\) für \lstinline|findSet(x)|, und \(\O(n)\) für \lstinline|union(x, y)|.
+Das funktioniert so, indem man in jedem Element immer einen Zeiger zum Repräsentanten seiner Menge gibt, und dann beim Vereinigen jedes Element modifiziert, sodass sie auf den gleichen Kopf zeigen.
+Das kann optimiert werden, wenn man zusätzlich die Größe der Mengen speichert, und jeweils die kleinere Menge an die größere Menge anhängt.
+
+Alternativ lässt sich Union-Find mithilfe von balancierten Bäumen implementieren.
+Da ist die Idee einfach normal in dem Suchbaum zu suchen für \lstinline|findSet(x)| und eine spezielle \lstinline|join|-Operation zu verwenden, um zwei Bäume miteinander zu verbinden und automatisch zu balancieren.
+Dann kann man \(\O(\log n)\) für beide Operationen erreichen.
+
+\subsection{Datenstrukturen in Python}
+In Python sind einige Datenstrukturen schon vordefiniert.
+\begin{lstlisting}
+# Stack und Queue/Deque
+list | collections.Deque
+# Priority Queue als Liste mit Heap-Methoden
+heapq.heappush(list, item)
+heapq.heappop(list)
+# Liste, Achtung: in mit Laufzeit $\O(n)$
+list
+# Menge, in mit durchschnittlicher Laufzeit $\O(1)$, union und difference aber mit $\O(n)$
+set
+# Dictionary
+dict
+\end{lstlisting}
+
+\section{Sortieren und Suchen}
+Oft eignet es sich gut, besonders bei Greedy-Algorithmen, eine Eingabe nach einer Ordnungsrelation zu sortieren.
+Beispielweise möchte man ein statisches Array nach Prioritäten sortieren um eine Reihenfolge der Bearbeitung festzulegen.
+Mediane und Quartile eines Datensatzes lassen sich weitaus leichter berechnen, wenn zunächst sortiert wird.
+Oder um festzustellen, ob Duplikate in einem Feld sind, lässt sich das Feld sortieren, um dann ein mal über sie iterieren.
+So ähnlich lassen sich auch Häufigkeiten von Elementen herausfinden, oder Duplikate löschen\footnote{Verwende zwei Pointer die jeweils durch das Feld durchlaufen und auf das letzte nicht gelöschte Element zeigen. Dann werden Duplikate mit dem jeweils nächsten Element vertauscht.}.
+Eine ursprüngliche Reihenfolge kann erreicht werden, indem man vor dem Sortieren die Position als Attribut jedem Element hinzufügt, und nach der Bearbeitung wieder nach diesem Attribut sortiert.
+Außerdem können sortierte Felder verwendet werden, um für unterschiedliche Werte und einen Zielwert Paare zu finden, die diesen Zielwert aufsummiert oder multipliziert erreichen.
+Dabei wird ein Mal gleichzeitig von links und von rechts durch das Feld iteriert, um alle validen Paare zu finden\footnote{Wenn das Paar zu groß ist, wird rechts iteriert, sonst links.}.
+
+Ein sortiertes Feld kann aber sehr effektiv für die Suche verwendet werden, denn sie ermöglicht Binäre Suche, womit in \(\O(\log n)\) ein Wert gefunden werden kann.
+
+\subsection{Sortierverfahren}
+Es existieren offenbar verschiedene Algorithmen, um ein Feld \(X \in \R^{[n]}\) zu sortieren.
+\begin{description}
+    \item[Selectionsort] Suche das Minimum aus dem Feld und füge es links ein.
+        Erreicht \(\O(n^2)\), ist allgemein nicht stabil, jedoch in-place.
+
+    \item[Insertionsort] Teile Feld in sortierten und nicht-sortierten Teil auf.
+        Füge immer wieder ein Element aus dem nicht-sortierten Teil in den sortierten Teil ein.
+        Erreicht \(\O(n^2)\), ist stabil und in-place.
+
+    \item[Bubblesort] Gehe \(n\) mal durch das Feld durch und Tausche Elemente, wenn sie an der falschen Position sind.
+        Sortiere weiter mit dem getauschtem Element.
+        Erreicht \(\O(n^2)\), ist stabil und in-place.
+
+    \item[Quicksort] Wähle ein Pivot-Element aus dem Feld, schiebe alle kleineren Elemente rechts von dem Element nach Links und andersrum.
+        Sortiere links und rechts rekursiv weiter.
+        Erreicht \(\O(n \log n)\), ist nicht stabil, jedoch in-place.
+
+    \item[Mergesort] Teile linke und rechte Hälfte rekursiv auf, füge sortierte Hälften ineinander.
+        Erreicht \(\O(n \log n)\), ist stabil, jedoch meistens nicht in-place.
+
+    \item[Heapsort] Füge alle Elemente in einen Heap und poppe \(n\) mal den Baum.
+        Erreicht \(\O(n \log n)\), ist nicht stabil, jedoch in-place.
+\end{description}
+Man kann auch Felder sortieren ohne Vergleiche zu verwenden, dann sinkt die obere Schranke von \(\Omega(n \log n)\) auf \(\Omega(n)\).
+\begin{description}
+    \item[Bucketsort] Verteile Elemente durch monotone Abbildung der Werte/Schlüssel auf \(k\) Buckets und sortiere einzelne Buckets weiter.
+        Im Fall \(k = n\) erreicht man \(\O(n)\).
+        Stabil möglich, aber nicht in-place.
+
+    \item[Countingsort] Für Feld \(X\) sei \(k := \max(X)\).
+        Für Feld der Größe \(k\) zähle wie oft jedes \(i \in [k]\) vorkommt, und schreibe diese Zahl in das Feld.
+        Berechne nun aus diesem Feld das sortierte Feld.
+        Erreicht \(\O(n+k)\) sinnvoll zu nutzen für \(k << n\).
+        Ist stabil, jedoch nicht in-place.
+\end{description}
+
+\subsection{Suchverfahren}
+Es gibt auch unterschiedliche Algorithmen um in einem Feld \(X \in \R^{[n]}\) nach \(x \in \R\) zu suchen.
+\begin{description}
+    \item[Sequenzielle Suche] Gehe linear durch \(X\) durch und stoppe wenn \(x = X[i]\).
+        Laufzeit \(\O(n)\).
+        Wenn \(X\) sortiert ist, kann man vorzeitig stoppen, wenn \(x < X[i]\).
+
+    \item[Binäre Suche] Wenn \(X\) sortiert ist, kann man immer wahlweise die Mitte \(m = n//2\) wählen, und dann, wenn das Element kleiner ist, weitersuchen in \(X[..m-1]\), bzw. wenn es größer ist in \(X[m+1..]\), bis es gefunden wurde.
+        Laufzeit \(\O(\log n)\).
+
+        Der Algorithmus lässt sich auch auf reelle Intervalle übertragen, beispielweise bei der Suche nach Nullstellen einer Funktion -- das nennt man \emph{Bisektion}.
+\end{description}
+
+\subsection{Sortieren und Suchen in Python}
+Python liefert verschiedene Standardfunktionen um zu suchen und zu sortieren.
+\begin{lstlisting}
+# Sortiert liste stabil, $\O(n \log n)$
+list.sort()
+# Erstellt einen Heap, $\O(n)$
+heapq.heapify(list)
+# Hinzufügen und Entfernen aus einem Heap, $\O(\log n)$
+heapq.heappush(list, item)
+heapq.heappop(list)
+# Binäre Suche, $\O(\log n)$
+bisect.bisect(list, item)
+\end{lstlisting}
