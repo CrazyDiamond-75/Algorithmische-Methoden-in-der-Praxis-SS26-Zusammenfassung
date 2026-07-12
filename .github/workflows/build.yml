@@ -28,7 +28,7 @@ jobs:
       - name: Move PDF inside public directory
         run: |
           mkdir ./public
-          mv rtsys_recap.pdf ./public/
+          mv *.pdf ./public/
       
       - name: Upload PDF
         uses: peaceiris/actions-gh-pages@v4
