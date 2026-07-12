@@ -1,0 +1,38 @@
+name: Build LaTeX Document
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # TODO: Maybe do this manually with `run latexmk ...`
+      - name: Compile LaTeX
+        uses: xu-cheng/latex-action@v4
+        with:
+          docker_image: crazydiamond75/latex-with-fonts:latest
+          root_file: algo_recap.tex
+          latexmk_use_lualatex: true
+
+      - name: Move PDF inside public directory
+        run: |
+          mkdir ./public
+          mv rtsys_recap.pdf ./public/
+      
+      - name: Upload PDF
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          force_orphan: true
