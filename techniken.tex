@@ -226,3 +226,70 @@ heapq.heappop(list)
 # Binäre Suche, $\O(\log n)$
 bisect.bisect(list, item)
 \end{lstlisting}
+
+\section{Exhaustive Search und Backtracking}
+Eine klassische Lösungsmethode jedes Problems ist die exhaustive Suche, bei der kontinuierlich alle Lösungskandidaten berechnet und getestet werden.
+Dies benötigt das Aufzählen aller Permutationen bzw. Teilmengen des Inputs.
+Bei einigen \textsc{Np}-vollständigen Problemen muss wahrscheinlich leider auf diese Methode zurückgegriffen werden, was meistens in \(\O(2^n)\) resultiert.
+
+Etwas klüger funktioniert das Backtracking, indem der Suchraum rekursiv beschritten wird und dabei so eingeschränkt wird, dass vorzeitig abgebrochen werden kann, wenn eine Lösung nicht mehr optimal werden kann.
+
+\subsection{Permutationen Berechnen}
+Eine Möglichkeit um alle \(n!\) Permutationen einer Eingabe \(X \in \R^n\) zu berechnen ist \emph{Heap's Algorithmus}:
+\begin{lstlisting}
+def HeapsAlgorithm(X, n):
+    if n == 1:
+        test(X) # Probiere aktuelle Permutation
+    else:
+        for i in range(n-1):
+            HeapsAlgorithm(X, n-1)
+            if n % 2 == 0:
+                X[i], X[n-1] = X[n-1], X[i]
+            else:
+                X[0], X[n-1] = X[n-1], X[0]
+        HeapsAlgorithm(X, n-1)
+\end{lstlisting}
+Wenn die Reihenfolge, in der die jeweiligen Permutationen getestet werden sollen wichtig ist, muss offenbar deutlich mehr getauscht werden.
+In Python kann effizient einfach \lstinline|itertools.permutations(X, len(X))| verwendet werden um alle Permutationen von \(X\) der Länge \(n\) in lexikographischer Reihenfolge zu finden.
+
+\subsection{Teilemengen Berechnen}
+Die Teilmengen von \(X\) lassen sich leicht berechnen, indem man einfach in einem Bitvektor der Länge \(n\) durch alle möglichen Werte geht:
+\begin{lstlisting}
+def Subsets(X: set):
+    for b in range(2 ** n):
+        A = set()
+        for i in range(n):
+            if b & (2 ** i) != 0:
+                A += set(X[i])
+        test(A)
+\end{lstlisting}
+
+\subsection{Backtracking}
+Backtracking heißt eine schrittweise Konstruktion der richtigen Lösung durch Auswahl eines Elements.
+Wenn ein Misserfolg erkannt wird, wird der letzte Zug rückgängig gemacht, um dann verwandte Alternativen auszuprobieren.
+
+Beispielweise kann Backtracking im \textsc{Subset-Sum} Problem verwendet werden, bei den für \(X \subseteq \N, n = |X|\) und \(M \in \N\) eine Teilmenge \(S \subseteq X\) mit \(\sum S = M\) gesucht wird.
+Dabei wird der Suchbaum durchgegangen, und vorzeitig abgebrochen, wenn die derzeit gesammelten Elemente schon bereits \(M\) überschreiten.
+Dann wird zum letzten Knoten zurückgegangen und weiter gesucht.
+Somit kann der Suchbaum deutlich verkleinert werden -- das nennt man auch \emph{search tree pruning}.
+Meistens reduziert diese Strategie die Laufzeit, jedoch wurde in diesem Beispiel der worst-case nicht verbessert, wenn keine Teilmenge die Summe erreicht.
+
+Das Lösungsschema lässt sich auf einen grundlegenden Ablauf runterbrechen:
+\begin{enumerate}
+    \item Starte mit leerer Lösung, \lstinline|s = []; Backtracking(s)|.
+        Wiederhole folgendes bis Abbruch:
+
+    \item Teste ob der derzeitige Knoten eine Lösung ist, \lstinline|IsSolution(s)|.
+
+    \item Teste ob es noch Lösungskandidaten gibt weiter im Suchbaum von hier aus, \lstinline|IsValid(s + [c])| für mögliche Schritte \lstinline|c|.
+        \begin{itemize}
+            \item Wenn ja, gehe weiter im Suchbaum von dieser Stelle aus, \lstinline|s.push(c); Backtracking(s)|.
+
+            \item Wenn nicht, kehre zum letzten Kandidaten zurück, von dem es aus noch andere Lösungskandidaten gab, \lstinline|s.pop()|
+        \end{itemize}
+\end{enumerate}
+Anwendungsbeispiele für Backtracking sind u.a., kombinatorische Probleme, \textsc{Knapsack}, \textsc{Subset-Sum}, das Damenproblem, Sudoku, Pfadsuche, oder Graphenfärbung.
+
+Backtracking lässt sich meistens auch noch besser optimieren, indem man jeweils Kandidaten wählt, von denen man nach einer Greedy-Strategie erwartet, dass sie besser sein könnten als andere -- eine Form von \emph{look-ahead}.
+
+Sind jedoch minimal Lange Lösungen gesucht, sollte man vielleicht Breitensuche statt der klassischen Tiefensuche verwenden.
