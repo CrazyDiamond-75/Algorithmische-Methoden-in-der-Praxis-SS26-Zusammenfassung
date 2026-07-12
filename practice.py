@@ -1,4 +1,4 @@
-# Union Find Linked List
+# Union Find Linked List Heads
 class UF_LL:
     # Linked List
     class LL:
@@ -30,13 +30,80 @@ class UF_LL:
             curr = curr.nxt
 
 
-# Test Linked-List UF
+# Test Linked List UF with Heads
 """
 uf = UF_LL(2)
 print(uf.find(1))
 uf.union(0, 1)
 print(uf.find(1))
 
+exit()
+"""
+
+
+# Union Find Linked List Tails
+# Could have been faster for Marry Rich problem, as we only need to find once at the end.
+class UF_LL_B:
+    class LL:
+        def __init__(self):
+            self.nxt = None
+            self.tail = self
+            self.val = None
+            self.active = True
+
+        # O(1)
+        def __str__(self):
+            return "{" + f"{self.val}, ..., {self.tail.val}" + "}"
+
+        # O(n)
+        def to_list(self):
+            lst = []
+            curr = self
+            while curr:
+                lst.append(curr.val)
+                curr = curr.nxt
+            return lst
+
+    def __init__(self, size):
+        self.sets = [self.LL() for _ in range(size)]
+        for i, head in enumerate(self.sets):
+            head.val = i
+
+    # O(n)
+    def find(self, i) -> LL:
+        for head in self.sets:
+            if not head.active:
+                continue
+
+            curr = head
+            while curr:
+                if curr.val == i:
+                    return curr
+                curr = curr.nxt
+        return None
+
+    # O(1)
+    def union(self, A: LL, B: LL):
+        if A is B:
+            return
+        else:
+            A.tail.nxt = B
+            A.tail = B.tail
+            B.active = False
+
+    # O(n)
+    def __str__(self):
+        return f"{[head.__str__() for head in self.sets if head.active]}"
+
+
+# Test Linked List with Tails
+"""
+uf = UF_LL_B(2)
+st1 = uf.sets[0]
+st2 = uf.sets[1]
+print(uf)
+uf.union(st1, st2)
+print(uf)
 exit()
 """
 
