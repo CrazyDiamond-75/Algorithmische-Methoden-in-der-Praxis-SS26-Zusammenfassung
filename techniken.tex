@@ -292,4 +292,79 @@ Anwendungsbeispiele für Backtracking sind u.a., kombinatorische Probleme, \text
 
 Backtracking lässt sich meistens auch noch besser optimieren, indem man jeweils Kandidaten wählt, von denen man nach einer Greedy-Strategie erwartet, dass sie besser sein könnten als andere -- eine Form von \emph{look-ahead}.
 
-Sind jedoch minimal Lange Lösungen gesucht, sollte man vielleicht Breitensuche statt der klassischen Tiefensuche verwenden.
+Sind jedoch minimal lange Lösungen gesucht, sollte man vielleicht Breitensuche statt der klassischen Tiefensuche verwenden.
+
+\section{Dynamische Programmierung}
+Dynamische Programmierung ist ein Ansatz, indem eine Rekursion optimiert wird.
+Das Hauptziel ist es, die Lösung aus den Lösungen für kleinere Probleme aufzubauen, welche genau ein mal berechnet werden.
+Offenbar ist nicht jeder rekursiver Algorithmus eine Anwendung von dynamischer Programmierung, berechnet man naiv rekursiv die Fibonacci-Sequenz, berechnet man viele Vorgänger mehrfach.
+
+Um dynamische Programmierung anwenden zu können, muss das Problem natürlich mit \emph{Teile-und-Herrsche} lösbar sein, da offensichtlich die Lösung überhaupt strukturell aufbaubar aus Teillösungen sein muss.
+Dazu lohnt es sich natürlich auch nur, dynamische Programmierung anzuwenden, wenn beim Lösen des Problems mehrere Teillösungen mehrmals berechnet werden müssen.
+Wenn dies nicht der Fall ist, kann man einfach naiv rekursiv programmieren, ohne bestraft zu werden.
+
+Dynamische Programmierung lässt sich grundlegend in zwei verschiedene Ansätze runterbrechen: \emph{Top-Down} und \emph{Bottom-Up}.
+
+\subsection{Top-Down}
+Top-Down basiert auf Memoisation, bei der rekursiv berechnet wird, und wichtige Zwischenergebnisse zwischengespeichert werden, wenn sie noch nicht berechnet wurden.
+Der Name \emph{Top-Down} entspricht daher, dass durch die Rekursion der Berechnungsgraph vom initialen Aufruf vollständig aufgefalten wird.
+
+Beispielsweise kann so die \(n\)-te Fibonacci Zahl mit Top-Down berechnet werden:
+\begin{lstlisting}
+F = []
+def fib(n):
+    global F
+    if not F:
+        F = [0, 1] + [None for i in range(n - 1)]
+    if not F[n]:
+        F[n] = fib(n-1) + fib(n-2)
+    else:
+        return F[n]
+\end{lstlisting}
+Hier wird ein statisches Feld \lstinline|F| verwendet, welches die trivialen Ergebnisse speichert, und in welches jegliche Zwischenergebnisse eingefügt werden, wenn sie nicht berechnet wurden.
+
+\subsection{Bottom-Up}
+Im Vergleich zu Top-Down wird bei Bottom-Up stattdessen Tabulation verwendet, bei der alle Zwischenergebnisse iterativ direkt berechnet werden, bevor die eigentliche Instanz berechnet wird.
+Ein typisches Beispiel dazu ist die Levenshtein-Distanz, oder wieder die Fibonacci Sequenz:
+\begin{lstlisting}
+def fib(n):
+    F = [0, 1] + [None for i in range(n - 1)]
+    for i in range(1, n+1):
+        F[i] = F[i-1] + F[i-2]
+\end{lstlisting}
+Falls oft diese Funktion aufgerufen werden soll, kann es sich empfehlen sie vorzuberechnen und einfach \lstinline|F[n]| direkt zurückzugeben.
+
+\subsection{Dynamische Programmierung Anwenden}
+Um dynamische Programmierung in einem Algorithmus anzuwenden muss man zunächst, wie beim Backtracking, die Zustände identifizieren, welche Probleminstanzen beschreiben -- beim Fibonacci Problem sind das alle \(F(i)\) für Entfernung \(i \in [n]\) von der Wurzel.
+Danach müssen die Zustandsübergänge gefunden werden, die die jeweiligen Teillösungen erweitern -- der Induktionsschritt, bei Fibonacci \(F(i) = F(i-1) + F(i-2)\).
+Offenbar müssen dafür die Randfälle definiert werden -- die Induktionsanfänge, bei Fibonacci \(F(0) = 0, F(1) = 1\).
+Zuletzt muss entschieden werden, ob Top-Down oder Bottom-Up verwendet werden soll.
+
+\subsubsection{Top-Down versus Bottom-Up}
+Es gibt Vor- und Nachteile beider Ansätze.
+Top-Down ist leichter intuitiv umzusetzen, da sie den naiven rekursiven Algorithmus erweitert, jedoch ensteht durch die verwendeten Rekursionen ein Overhead.
+Im Vergleich nutzt Bottom-Up durch die iterative Berechnung gut Caching aus, jedoch werden alle Zwischenergebnisse berechnet, und nicht nur die nötig zu berechnenden.
+
+\subsection{Beispiel: \textsc{Subset-Sum}}
+Beim \textsc{Subset-Sum} Problem lässt sich dynamische Programmierung anwenden, um das Problem zu optimieren.
+Sei eine Probleminstanz \(x \in \N^n, n \in \N\) mit Zielwert \(m \in \N\).
+Gesucht ist die kleinste\footnote{Hier als Optimierungsproblem.} Teilmenge \(S \subseteq \{x_i\}_{i \in [n]}\) mit \(\sum S = m\).
+
+Wir definieren Zustände \(T(i,j) := \text{Größe der kleinsten Teilmenge von } \{x_k\}_{k \in [i]}\) für \(i \in [n]\) mit Summe \(j \in [m]\).
+Somit definieren sich die Randfälle \(T(i, 0) = 0\) und \(T(0, j) = \infty\) für \(j > 1\).
+
+Die Rekursion definiert sich dadurch, dass wir entweder ein neues Element \(x_i\) beim Iterieren über \(i\) verwerfen müssen, oder sonst entscheiden, ob es sich lohnt zu nehmen.%
+\addtocounter{footnote}{-1}% Dummer Hack pt1
+\begin{IEEEeqnarray*}{r'c'l}
+    T(i, j) & := &
+    \begin{cases}
+        T(i-1, j) & \text{wenn } x_i > j, \\
+        \min(T(i-1, j), T(i-1, j-x_i) + 1) & \text{sonst\footnotemark}.
+    \end{cases}
+\end{IEEEeqnarray*}
+\addtocounter{footnote}{-2}% Dummer Hack pt2
+\footnotetext{Linker Term: kleinste Teilmenge ohne \(x_i\). Rechter Term: kleinste Teilmenge, die \(x_i\) wählt.}%
+Je nachdem ob Memoisation oder Tabulation verwendet wird, wird beim Lösen \(T(n, m)\) berechnet.
+Um dann die minimale Teilmenge zu finden, die mit dem Ergebnis assoziiert wird, muss man nur die Schritte zu Lösung einzeln noch mal machen und dabei sich die gewählten Elemente merken.
+
+Dynamische Programmierung lässt sich wie gesagt gut anwenden für die Fibonacci Sequenz, die Levenshtein Distanz, \textsc{Subset-Sum}, oder \textsc{Knapsack}, der Longest Common Subsequence, Longest Increasing Subsequence, dem Longest Common Substring, oder dem \textsc{Travelling-Salesman} Problem.
