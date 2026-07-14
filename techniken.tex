@@ -95,7 +95,11 @@ Offenbar lassen sich Priority Queues einfach schnell mithilfe von Heaps implemen
 Dann kommt man auf \(\O(\log n)\) für \lstinline|insert| und \lstinline|extractMax|, sowie \(\O(1)\) für \lstinline|maximum|.
 
 \subsection{Graphen}
-\todo[inline]{Hier weitermachen ab Kapitel 7!}
+Graphen beschreiben Relationen zwischen einzelnen Objekten.
+Meistens werden sie definiert als ein Tupel \((V, E)\) mit \(V = [n]\) für \(n \in \N\) und \(E \subseteq V^2\) oder \(E \subseteq \{\{v, w\} \subset_2 V \mid v \ne w\}\) je nachdem, ob man gerichtete oder ungerichtete Graphen behandelt\footnote{Es gibt auch Graphen mit Mehrfachkanten oder Selbstkanten.}.
+Graphen können auch gewichtet sein, das bedeutet, dass man eine Gewichtung \(w \in \R^E\) definiert.
+Außerdem gibt es zyklische und azyklische Graphen, je nachdem wenn es einen Pfad im Graphen gibt, der den Ursprungsknoten erreicht.
+Siehe \autoref{sec:6} für Algorithmen auf Graphen.
 
 \subsection{Dictionaries}
 Ein Dictionary stellt eine Abbildung zwischen Schlüsseln und Werten dar.
@@ -139,7 +143,7 @@ Dann kann man \(\O(\log n)\) für beide Operationen erreichen.
 In Python sind einige Datenstrukturen schon vordefiniert.
 \begin{lstlisting}
 # Stack und Queue/Deque
-list | collections.Deque
+list | collections.deque
 # Priority Queue als Liste mit Heap-Methoden
 heapq.heappush(list, item)
 heapq.heappop(list)
@@ -368,3 +372,115 @@ Je nachdem ob Memoisation oder Tabulation verwendet wird, wird beim Lösen \(T(n
 Um dann die minimale Teilmenge zu finden, die mit dem Ergebnis assoziiert wird, muss man nur die Schritte zu Lösung einzeln noch mal machen und dabei sich die gewählten Elemente merken.
 
 Dynamische Programmierung lässt sich wie gesagt gut anwenden für die Fibonacci Sequenz, die Levenshtein Distanz, \textsc{Subset-Sum}, oder \textsc{Knapsack}, der Longest Common Subsequence, Longest Increasing Subsequence, dem Longest Common Substring, oder dem \textsc{Travelling-Salesman} Problem.
+
+\newcommand{\adj}{\text{adj}}
+\renewcommand{\deg}{\text{deg}}
+\newcommand{\nxt}{\text{next}}
+\newcommand{\prd}{\text{pred}}
+
+\section{Graphenalgorithmen}\label{sec:6}
+Für ungerichtete Graphen \(V, E\) definieren wir die Adjazenzmenge \(\adj : V \rightarrow \mathcal P(V), v \mapsto \{u \in V \mid \{u, v\} \in E\}\) und den Grad eines Knoten \(\deg(v) : V \rightarrow \N, v \mapsto |\adj(v)|\).
+
+Für gerichtete Graphen definieren wir analog \(\nxt(v)\) und \(\prd(v)\) als die Menge von eingehenden und ausgehenden Knoten, mit Kardinalitäten \(\deg_{in}(v)\) und \(\deg_{out}(v)\).
+
+Graphen lassen sich auf unterschiedliche Weisen modellieren.
+\begin{description}
+    \item[Adjazenzmatrix] Stelle Verbindungen von Knoten dar als Einträge in Matrix \(A \in \{0, 1\}^{n \times n}\) oder \(A \in \R^{n \times n}\) für gewichtete Graphen.
+        \(A_{ij} \ne 0\) genau dann, wenn \(\{i, j\} \in E\), analog für gerichtete Graphen.
+        Die Adjazenzmatrix hat den Vorteil, dass in konstanter Laufzeit auf eine Kante zugegriffen werden kann.
+        Der Nachteil ist der exzessive Speicherverbrauch in \(\Theta(n^2)\) und, dass \(\O(n)\) gebraucht wird, um alle Nachbarn eines Knoten herauszufinden.
+
+    \item[Adjazenzliste] Alternativ kann man alle benachbarten Knoten in einer Form von einer Bucket List speichern, bei der ein Feld die jeweiligen Adjazenzmengen der Knoten indiziert.
+        In Python eignet sich sehr gut \lstinline|list[set]| dafür, da man bei einem Speicherverbrauch \(\Theta(|V| + |E|)\) sogar amortisiert konstant schnell auf eine Kante \(\{i, j\}\) zugreifen kann\footnote{Verwende man naiv \lstinline|list[list]|, müsste man wirklich durch \(\deg(v)\) Knoten maximal durchgehen, da \lstinline|in| bei Listen \(\O(n)\) braucht, jedoch nur \(\O(1)\) durchschnittlich bei \lstinline|set|.}.
+        Wenn man aber lieber schnell auf Nachbarn iterieren will, und so ein Lookup nicht so wichtig ist, sollte man doch lieber \lstinline|list[list]| verwenden, da \lstinline|set| langsamer als Listen iterieren.
+
+    \item[Verknüpfte Datenstruktur] Ähnlich wie bei typischen Implementierungen für Baumstrukturen, lassen sich Graphen auch als Datentypen speichern, welche Knoten als Zeigern auf andere Knoten definieren.
+        Das hat den Vorteil, dass man direkt die Topologie des Graphens abbildet, jedoch kann die Navigation im Graphen umständlich sein.
+\end{description}
+Manchmal definiert sich die Topologie des Graphens geometrisch.
+Beispielweise wenn Knoten Punkte im Raum sind, und eine Kante zwischen Knoten genau dann liegt, wenn sie nah genug sind.
+Oder wenn in einem Gitter Zellen dargestellt werden, die benachbart sind, wenn ihre Manhattan-Distanz genau \(1\) ist.
+In diesen Fällen sollte man eine Datenstruktur wählen, die diese Topologie gut abbildet, wenn sie relevant zum Problem ist.
+
+\subsection{Suchen im Graphen}
+Es gibt verschiedene Algorithmen, um in einem Graphen zu suchen oder Knoten zu besuchen und zu verarbeiten.
+Die bekanntesten Algorithmen hierfür sind die Tiefensuche und die Breitensuche.
+\begin{description}
+    \item[Tiefensuche] Wähle irgendeine Kante des derzeitigen Knotens und besuche den Nachbarn.
+        Wenn der Knoten keine unbesuchten Nachbarn besitzt, gehe zurück zum letztes besuchten Knoten mit neuen Nachbarn.
+        Besuche alle Nachbarn in FIFO-Reihenfolge (Stack).
+
+    \item[Breitensuche] Besuche direkt nacheinander alle unbesuchten Nachbarn des aktuellen Knotens.
+        Mache dann beim zuerst besuchtem Nachbarn weiter.
+        Besuche alle Nachbarn in LIFO-Reihenfolge (Queue).
+\end{description}
+Graphensuche ist oft eine Grundlage, um kürzeste Wege zu ermitteln\footnote{Breitensuche findet sogar den kürzesten Pfad in ungewichteten Graphen.}, Zusammenhangskomponenten zu ermitteln, topologisch zu sortieren, oder Zyklen zu finden.
+\begin{lstlisting}
+adj: list[list]
+b = [False for v in V]
+
+def dfs(v):
+    """Rekursive Tiefensuche"""
+    global b
+    b[v] = True
+
+    processNode(v) # Mache irgendwas mit dem aktuellen Knoten
+
+    for w in adj[v]:
+        if not b[w]:
+            dfs(w)
+
+def dfs_or_bfs_iter(root):
+    """Iterative Tiefen- bzw. Breitensuche"""
+    Q = collections.deque()
+    Q.push(root)
+    b[root] = True
+    while Q:
+        # Q.popleft() bei Breitensuche
+        v = Q.pop()
+
+        processNode(v) # ...
+
+        for u in adj(v):
+            if not b[u]:
+                Q.push(u)
+                b[u] = True
+\end{lstlisting}
+
+\subsubsection{Tarjan's Algorithmus}
+Man kann die Schnittknoten\footnote{Knoten die man nicht entfernen darf, ohne den Graphen in mehrere Zusammenhangskomponenten zu teilen.} bestimmen indem man Tiefensuche clever erweitert durch zwei Felder \(\text{disc}\) und \(\text{low}\).
+disc speichert für jeden Knoten den Zeitpunkt wann der Knoten erstmals besucht wurde.
+low speichert die Anzahl an Vorfahrer-Knoten, die vom Knoten aus erreichbar sind, ohne seinen Elternknoten zu besuchen, speichern.
+
+Alle Knoten, die nun im generiertem Baum der Tiefensuche entweder eine Wurzel mit mehr als einem Kind, oder ein Kind mit low größer/gleich disc seines Elternknotens, sind Schnittknoten.
+Dieser Algorithmus heißt \emph{Tarjan's Algorithmus}.
+
+\subsubsection{Topologische Sortierung}
+Für gerichtete azyklische Graphen (DAGs) gibt es offenbar eine Reihenfolge \(p \in [n]^V\), sodass \((v, w) \in E \Rightarrow p_v < p_w\).
+Die Reihenfolge der Knoten nennt man topologische Sortierung -- eine eines Graphen zu finden geht mit Kahn's Algorithmus.
+Manchmal kann das Traversieren/Suchen des Graphens in dieser Reihenfolge praktisch sein, da eine abgeleitete Hierarchie eingehalten wird.
+
+\begin{lstlisting}
+nexT = list[list]
+preD = list[list]
+
+def topo_search(root):
+    """Topologische Suche im DAG"""
+    Q = collections.deque()
+    Q.push(root)
+
+    while Q:
+        v = Q.pop()
+
+        processNode(v) # ...
+
+        for u in nexT[v]:
+            # Entferne die Kante aus dem Graphen
+            nexT[v].remove(u)
+            preD[u].remove(v)
+            if len(preD[u]) == 0:
+                Q.push(u)
+\end{lstlisting}
+Dieser Algorithmus lässt sich auch verwenden um zu Prüfen ob ein Zyklus in einem gerichteten Graphen ist, da sonst immer die Kantenmengen leer sein müssten.
+
+Bei allgemeinen ungerichteten Graphen lässt sich dies leichter bestimmen indem wir überprüfen, ob in irgendeinem Moment ein Knoten einen bereits besuchten Knoten durch eine neue Kante erreichen kann.
