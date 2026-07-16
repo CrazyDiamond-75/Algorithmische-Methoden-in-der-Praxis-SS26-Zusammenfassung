@@ -50,6 +50,9 @@ Mithilfe der definierten Datenstrukturen lassen sich abstrakte Datenstrukturen i
 
     \item[Deque] Eine Deque ist eine Datenstruktur, die gleichzeitig Queue und Stack realisiert.
 \end{description}
+
+\pagebreak
+
 Alle Operationen dieser Datenstrukturen sind in konstanter Laufzeit implementierbar mithilfe verketteter Listen, wenn man Zeiger zum ersten/letzten Element speichert, die automatisch aktualisiert werden.
 Alternativ ist es aber auch möglich, wenn man eine maximale Größe spezifiziert, die Datenstrukturen mithilfe statischer Arrays zu implementieren.
 
@@ -301,7 +304,7 @@ Backtracking lässt sich meistens auch noch besser optimieren, indem man jeweils
 Sind jedoch minimal lange Lösungen gesucht, sollte man vielleicht Breitensuche statt der klassischen Tiefensuche verwenden.
 
 \section{Dynamische Programmierung}
-Dynamische Programmierung ist ein Ansatz, indem eine Rekursion optimiert wird.
+Dynamische Programmierung (DP) ist ein Ansatz, indem eine Rekursion optimiert wird.
 Das Hauptziel ist es, die Lösung aus den Lösungen für kleinere Probleme aufzubauen, welche genau ein mal berechnet werden.
 Offenbar ist nicht jeder rekursiver Algorithmus eine Anwendung von dynamischer Programmierung, berechnet man naiv rekursiv die Fibonacci-Sequenz, berechnet man viele Vorgänger mehrfach.
 
@@ -426,7 +429,8 @@ def dfs(v):
     global b
     b[v] = True
 
-    processNode(v) # Mache irgendwas mit dem aktuellen Knoten
+    # Mache irgendwas mit dem aktuellen Knoten
+    processNode(v)
 
     for w in adj[v]:
         if not b[w]:
@@ -515,3 +519,33 @@ def kruskal(edges, n):
 Recht ähnlich verläuft der Algorithmus von Prim, bei dem mit einem Knoten gestartet wird, und dann immer jeweils die kleinste Kante, die einen Knoten außerhalb des aktuellen Baumes hinzufügt, gewählt wird.
 
 \subsubsection{Kürzeste Pfade}
+Es gibt verschiedene Algorithmen um kürzeste Pfade im Graphen zu finden.
+Um in ungewichteten Graphen den kürzesten Pfad zwischen zwei Knoten zu finden, lässt sich Breitensuche verwenden, wie bereits erwähnt.
+Für gewichtete Graphen müssen aber andere Verfahren benutzt werden.
+
+Wenn kürzeste Pfade von mehreren Knoten aus gesucht werden, kann ein weiterer Knoten hinzugefügt werden, der einen Nullkante zu den jeweiligen Knoten besitzt.
+Danach macht man einfach mit einem der folgenden Algorithmen weiter, die den kürzesten Pfad zwischen zwei Knoten berechnen.
+\begin{description}
+    \item[Djikstra] Dijkstra's Algorithmus ist ein Greedy DP Algorithmus, der iterativ den Graphen traversiert, und dabei für jeden Knoten mittels seiner Kanten die Distanz zum Ursprungsknoten aktualisiert.
+        Der Algorithmus funktioniert nur mit positive Kanten.
+        Die Distanz zum Knoten wird als DP-Feld gespeichert.
+        Kanten werden mittels einer Min-Priority Queue gewählt.
+        Somit ergibt sich eine worst-case Laufzeit von \(\O(|E| + |V| \log |V|)\).
+
+    \item[Bellman-Ford] Der Algorithmus von Bellman und Ford lässt sich für negative Kanten verwenden, und kann benutzt werden um negative Zyklen in Graph zu finden.
+        Bellman-Ford funktioniert, indem ein DP-Feld die Distanz zum Ursprungsknoten speichert.
+        Die Distanz \(D_i\) wird zunächst für alle Knoten außer dem Ursprungsknoten auf \(\infty\) gesetzt.
+        Nun wird maximal \(n-1\) Mal jede Kante \((i, j)\) mit Gewicht \(w_{ij}\) überprüft, ob \(D_i + w_{ij} < D_j\) gilt.
+        Wenn ja wird die jeweilige Distanz aktualisiert.
+        Die Pfadlänge wird pro Iteration möglicherweise immer um eins erhöht, weswegen durch diesen Algorithmus auch ein \(k \in [n-1]\) langer Pfad gefunden werden kann.
+        Wenn nach einer weiteren, \(n\)-ten, Iteration sich Distanzen aktualisieren, existiert ein negativer Zyklus.
+        Es ergibt sich eine Laufzeit von \(\O(|V| \cdot |E|)\).
+\end{description}
+Wenn der kürzeste Weg im Graph zwischen allen möglichen Kombinationen von Knoten gesucht sind, lässt sich ein weiterer Algorithmus verwenden.
+\begin{description}
+    \item[Floyd-Warschall] Floyd's Algorithmus ist ein Algorithmus, der Bellman-Ford erweitert und dynamische Programmierung verwendet.
+        Hier wird ein Feld \(D_k(i,j)\) definiert, welches die kürzeste Weglänge von \(i\) nach \(j\) speichert.
+        Nun werden \(n\) Iterationen durchgeführt, die jeweils alle Knotenpaare durchgehen, und das DP-Feld aktualisieren.
+        Jede Iteration wird wieder die Pfadlänge erhöht, wenn es sich lohnt.
+        Somit ergibt sich eine Laufzeit von \(\O(|V|^3)\).
+\end{description}
