@@ -139,6 +139,8 @@ Alternativ lässt sich Union-Find mithilfe von balancierten Bäumen implementier
 Da ist die Idee einfach normal in dem Suchbaum zu suchen für \lstinline|findSet(x)| und eine spezielle \lstinline|join|-Operation zu verwenden, um zwei Bäume miteinander zu verbinden und automatisch zu balancieren.
 Dann kann man \(\O(\log n)\) für beide Operationen erreichen.
 
+Die \emph{beste} Implementierung von Union-Find verwendet Pfadkompression, dann kommt man auf \(\O(n + m \cdot \alpha(n))\) für \(m\) \lstinline|findSet(x)| und \(n\) \lstinline|union(x,y)| Aufrufe, wobei \(\alpha\) die Umkehrfunktion der Ackermann-Funktion ist.
+
 \subsection{Datenstrukturen in Python}
 In Python sind einige Datenstrukturen schon vordefiniert.
 \begin{lstlisting}
@@ -484,3 +486,32 @@ def topo_search(root):
 Dieser Algorithmus lässt sich auch verwenden um zu Prüfen ob ein Zyklus in einem gerichteten Graphen ist, da sonst immer die Kantenmengen leer sein müssten.
 
 Bei allgemeinen ungerichteten Graphen lässt sich dies leichter bestimmen indem wir überprüfen, ob in irgendeinem Moment ein Knoten einen bereits besuchten Knoten durch eine neue Kante erreichen kann.
+
+\subsection{Algorithmen auf Gewichteten Graphen}
+Bis jetzt haben wir nur ungewichtete Graphen betrachtet.
+Für gewichtete Graphen definieren wir \(w \in R^E\) eine Abbildung, die jeder Kante eine Gewichtung zuordnet.
+Es gibt nun einige interessante Herausforderungen für gewichtete Graphen.
+Beispielweise will man aus einem Graphen den Spannbaum mit minimalen Kantengewichten berechnen, oder kürzeste Wege zwischen zwei oder mehreren Punkten finden.
+
+\subsubsection{Kruskal's Algorithmus}
+Um einen minimalen Spannbaum zu finden, lässt sich Kruskal's Algorithmus verwenden.
+Der funktioniert so, dass man vorerst alle Kanten nach Gewicht sortiert, und dann immer minimale Kanten hinzufügt, wenn die zu verbindenden Knoten nicht schon in der gleichen Zusammenhangskomponente sind.
+Dafür lässt sich klug eine Union-Find Datenstruktur verwenden:
+\begin{lstlisting}
+def kruskal(edges, n):
+    # Sortiere Kanten nach Gewichtung
+    edges.sort(key=lambda x: x[2])
+
+    E = []
+    UF = UnionFind(n) # Speichert Knoten 0..n-1
+
+    for a, b, w in edges:
+        i = UF.find(a)
+        j = UF.find(b)
+        if i != j:
+            E.append((a, b))
+            UF.union(i, j)
+\end{lstlisting}
+Recht ähnlich verläuft der Algorithmus von Prim, bei dem mit einem Knoten gestartet wird, und dann immer jeweils die kleinste Kante, die einen Knoten außerhalb des aktuellen Baumes hinzufügt, gewählt wird.
+
+\subsubsection{Kürzeste Pfade}
