@@ -549,3 +549,89 @@ Wenn der kürzeste Weg im Graph zwischen allen möglichen Kombinationen von Knot
         Jede Iteration wird wieder die Pfadlänge erhöht, wenn es sich lohnt.
         Somit ergibt sich eine Laufzeit von \(\O(|V|^3)\).
 \end{description}
+
+\subsection{Flussnetzwerke}
+Eine weitere Klasse an Problemen auf gerichteten Graphen sind Flussnetzwerke.
+Ein Netzwerk ist ein gerichteter Graph \((V, E)\) mit Quelle\footnote{Eng. \emph{source}.} \(s \in V\), sowie Senke\footnote{Eng. \emph{sink}.} \(t \in V\), und Kapazitäten \(c_{ij} \in \N\) für \((i,j) \in E\).
+Ein Fluss im Netzwerk wird definiert durch Flusswert \(f_{ij} \in \Z\) für \((i,j) \in E\).
+Dabei muss ein Fluss folgende Eigenschaften erfüllen:
+\begin{enumerate}
+    \item Kapazitätskonformität \(\forall (i, j) \in E: f_{ij} \le c_{ij}\).
+    \item Antisymmetrie \(\forall (i, j) \in E: f_{ij} = f_{ji}\), wenn definiert.
+    \item Flusserhaltung \(\forall i \in V \setminus \{s, t\}: \sum_{j\in \prd(i)} f_{ji} = \sum_{j \in \nxt(i)} f_{ij}\).
+\end{enumerate}
+
+Es gibt verschiedene Probleme auf Flussnetzwerken, beispielweise dem \textsc{Maximum-Flow}-Problem.
+\subsubsection{Maximum-Flow}
+Bei dem \textsc{Maximum-Flow}-Problem der Fluss gesucht wird mit dem maximalen Flussgesamtwert \(|f| := \sum_{j \in \prd(t)}f_{jt} = \sum_{i \in \nxt(s)}f_{sj}\).
+Um das Problem zu lösen lässt sich der Ford-Fulkerson- oder Edmonds-Karp-Algorithmus verwenden.
+
+\begin{lstlisting}
+n : int
+m : int
+adj : list[list]
+cap : list[int]
+flow : list[int]
+
+def ffek():
+    # Quelle und Senke
+    s, t = 1, n
+
+    while True:
+        # Berechne Pfad von s zu t im Residualgraphen
+        edges = bfs(s, t, n) # Tiefensuche bei Ford-Fulkerson
+        if not edges:
+            break
+
+        # Berechne kleinste Restkapazität auf dem Pfad
+        df = min(cap[i][j] - flow[i][j] for (i, j) in edges)
+        # Aktualisiere Fluss auf allen Kanten auf dem Pfad
+        for (i, j) in edges:
+            flow[i][j] += df
+            flow[j][i] -= df
+
+    # Berechnung des max. Flusswerts nach Konvergenz
+    fmax = sum(flow[i][t] for i in range(n))
+
+def bfs(s, t, n):
+    done = False # Stoppe wenn t gefunden
+    b = [False] * n
+    parent = [-1] * n
+    visited[s - 1] = True
+    queue = collections.deque([s])
+    while queue and not done: # ...
+        i = queue.popleft()
+        for j in adj[i-1]:
+            if not b[i-1] and cap[i-1][j-1] > flow[i-1][j-1]: # Residualgraphskriterium
+            b[i-1] = True
+            parent[j-1] = i
+            if j == t:
+                done = True
+                break
+            queue.append(j)
+    return getPath(t, parent)
+
+# Findet Pfad von n zu t mittels Rückwärtstraversierung über parent.
+def getPath(t, parent):
+    edges = []
+    i = t
+    while parent[i-1] != -1:
+        edges.append((parent[i-1], i))
+        i = parent[i-1]
+    return edges
+\end{lstlisting}
+Sind mehrere Quellen vorhanden, muss man einfach nur eine weitere Quelle hinzufügen, die als eigentliche Quelle mit unendlicher Kapazität zu den originalen Quellen verbunden ist.
+
+Limitiert ein Knoten selbst das Netzwerk, da er eine Kapazität besitzt, muss man einfach einen weiteren Knoten hinzufügen, der \emph{vor} dem Knoten gelegen wird, und jene Kapazität als Verbindung zum Ursprungsknoten besitzt.
+
+Existieren Kanten mit entgegengesetzter Richtung, die die Antisymmetrie verletzen, kann man einfach einen Knoten in die Gegenkante einfügen.
+
+Besitzt das Netzwerk Mehrfachkanten, kann man die Kanten zusammenfassen indem man ihre Kapazitäten addiert.
+
+Der Algorithmus von Edmonds und Karp besitzt Laufzeit \(\O(n \cdot m^2)\), das \textsc{Maximum-Flow}-Problem lässt sich jedoch sogar in \(\O(n \cdot m)\) oder \(\O(m^{1+o(1)})\) lösen.
+
+\subsubsection{Minimum-Cut}
+
+\subsubsection{Maximum-Bipartite-Matching}
+
+\section{Range Queries}
