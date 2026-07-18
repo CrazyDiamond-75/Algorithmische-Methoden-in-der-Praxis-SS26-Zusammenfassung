@@ -631,7 +631,52 @@ Besitzt das Netzwerk Mehrfachkanten, kann man die Kanten zusammenfassen indem ma
 Der Algorithmus von Edmonds und Karp besitzt Laufzeit \(\O(n \cdot m^2)\), das \textsc{Maximum-Flow}-Problem lässt sich jedoch sogar in \(\O(n \cdot m)\) oder \(\O(m^{1+o(1)})\) lösen.
 
 \subsubsection{Minimum-Cut}
+Ein weiteres Problem ist die Suche nach einer Partition \(\{S,T\}\) von \(V\) mit \(s \in S\) und \(t \in T\), sowie minimaler \(c(S, T) := \sum\{c_{ij} \mid (i,j) \in E \wedge i \in S \wedge j \in T\}\).
+
+Um das Problem zu lösen, lässt sich der maximale Fluss finden, da \(|f| = c(S,T)\).
+Dann kann man jeweils im berechneten Residualgraphen \(G_f\) nach Knoten suchen, die von \(s\) bzw. \(t\) (mit umgedrehten Kanten) erreichbar sind.
 
 \subsubsection{Maximum-Bipartite-Matching}
+Flussnetzwerke lassen sich auch verwenden, um das größtmöglichste Matching zwischen Knoten in einem bipartiten Graphen zu finden.
+Dabei ist ein Matching eine Teilmenge der Kanten, sodass Knoten nur mittels genau einer Kante verbunden werden können.
+
+Das Problem lässt sich lösen, indem man ein Netzwerk konstruiert, welches eine Quelle hat, die zu allen Knoten aus der ersten Klasse verbunden ist, welche zu den jeweiligen Knoten aus der anderen Klasse verbunden sind, die zur Senke verbunden sind.
+Alle Kanten haben Kapazität 1.
+Berechnet man nun den maximalen Fluss werden genau die Kanten gefüllt, die in einer maximalen Matching verwendet werden.
 
 \section{Range Queries}
+Range Queries beschäftigen sich mit der Frage wie man für \(a \in \N^n\) und \(i,j \in [n], i \le j\), sowie \(f: \N^d \rightarrow \R\) mit \(d \in [n]\) alle möglichen \(f(a[i..j])\) berechnet.
+Dabei ist der naive Ansatz \(\O(n)\) langsam, jedoch gibt es Ansätze, um eine Range Query schneller zu bearbeiten.
+
+\subsection{Statische Daten}
+Wenn sich das Feld \(a\) nicht verändert, eignen sich folgende Ansätze.
+\begin{description}
+    \item[Ergebnistabelle] Berechne alle \(n^2\) Einträge \(f(a[i..j])\) vor und speichere sie in einem 2D Array.
+        Vorbereitung dauert mindestens \(\Omega(n^2)\), sowie müssen \(\Theta(n^2)\) Werte vorberechnet werden.
+        Dafür ist die Auswertung immer \(\O(1)\).
+
+    \item[Präfixsummenarray] Funktioniert nur für \(f = \sum\).
+        Speichere ein weiteres Feld \(\sigma \in \N^n\) mit \(\sigma_i = \sum_{j \in [i]}a_j\) für \(i \in [n]\).
+        Nun um \(f(a[i..j])\) zu berechnen, gib \(\sigma_j - \sigma_{i-1}\) zurück, wenn \(i > 1\), sonst \(\sigma_j\).
+        Die nötige Last sind \(\Theta(n)\) Laufzeit und Speicher für die Vorbereitung, jedoch kann eine Query mit \(\O(1)\) bearbeitet werden.
+
+    \item[Sparse Table]
+        Für idempotente Funktionen wie \(\min\) oder \(\max\) eignen sich sog. \emph{Sparse Tables}, bei denen nur für Teilsequenzen mit einer Zweierpotenz als Länge, Werte vorberechnet werden.
+        Somit füllt sich eine Tabelle \(M \in \N^{n \times n}\) oder ein Binärbaum mit \(n \log n\) Werten mit \(M[i][i] = a_i\), und \(M[i][i + 2^p - 1] = f(M[i][i + 2^{p-1} - 1], M[i + 2^{p-1}][i + 2^p - 1])\).
+        Bei idempotenten Funktionen ist die Auswertung möglich in \(\O(1)\), sonst in \(\O(\log n)\).
+\end{description}
+
+\subsection{Dynamische Daten}
+Daten können einzeln, \emph{Point Update}, sowie als Teilsequenz, \emph{Range Update}, verändert werden.
+Eine Datenstruktur für Range Queries sollten in diesen Fällen nicht von vorne berechnet werden, weswegen sich datenstrukturen anbieten, die Datenveränderungen ermöglichen.
+\begin{description}
+    \item[Naiver Ansatz] Wenn man keine Hilfsdatenstruktur verwendet, kommt man auf \(\O(n)\) pro Query, jedoch auf \(\O(1)\) pro Update.
+
+    \item[Präfixsummenarray] Beim Präfixsummenarray muss man in einem Update leider \(\O(n)\) Werte verändern, die Query ist aber konstant schnell.
+\end{description}
+Stattdessen lassen sich Baumstrukturen verwenden, mit denen Query und Update in \(\O(n \log n)\) ermöglicht werden.
+
+\subsubsection{Fenwick-Bäume}
+Fenwick-Bäume ermöglichen schnellere Sum Range-Queries auf dynamischen Daten.
+In einem Fenwick-Baum speichern Knoten die Gesamtsumme einer gewissen Teilsequenz von \(a\).
+Will man nun eine Range-Query \(f(a[i..j])\) berechnen, nimmt man \dots.
