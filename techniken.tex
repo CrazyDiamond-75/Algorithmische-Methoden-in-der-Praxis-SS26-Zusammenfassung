@@ -679,4 +679,33 @@ Stattdessen lassen sich Baumstrukturen verwenden, mit denen Query und Update in 
 \subsubsection{Fenwick-Bäume}
 Fenwick-Bäume ermöglichen schnellere Sum Range-Queries auf dynamischen Daten.
 In einem Fenwick-Baum speichern Knoten die Gesamtsumme einer gewissen Teilsequenz von \(a\).
-Will man nun eine Range-Query \(f(a[i..j])\) berechnen, nimmt man \dots.
+Will man nun eine Range-Query \(f(a[i..j])\) berechnen, wählt man Additive und Subtraktive aus dem Baum und erhält das Ergebnis in \(\O(\log n)\).
+Das Schöne daran ist, dass man ein Update so implementieren kann, dass das Update vom Kindknoten aus nach Oben backpropagiert wird, und somit auch \(\O(\log n)\) erreicht.
+Der Baum kann in \(\O(n)\) erstellt werden, mehr dazu im Competitive Programmer's Handbook: \url{https://cses.fi/book/book.pdf#section.9.2}.
+
+Der Nachteil des Fenwick-Baumes, ist es, dass wie beim Präfixsummenarray, keine anderen Range-Queries unterstützt werden, und, dass Range-Updates nur punktweise funktionieren, man käme also auf \(\O(n \log n)\).
+
+\subsubsection{Segmentbäume}
+Um die Probleme von Fenwick-Bäumen zu lösen, kann man Segmentbäume verwenden, die das generelle Prinzip des Fenwick-Baums generalisieren.
+Statt genau \(n\) Summen zu speichern, die \([n]\) partitionieren, verwendet man \(2n-1\) Einträge, die jeweils alle möglichen \(f(a[i,i])\), sowie \(f(a[i,i+1])\), \(f(a[i,i+3])\), \(f(a[i,i+7])\), bis \(f(a[i,i+n-1])\) repräsentieren.
+Die inneren Knoten speichern also \(f(l, r)\) wobei \(l, r\) die jeweiligen Kinder des Knoten sind.
+Um nun \(f(a[i,j])\) zu berechnen, kann der folgende Algorithmus verwendet werden:
+\begin{enumerate}
+    \item Starte mit Intervall \([l, r] \leftarrow [1, n]\), und \(F = \) dem neutralen Element von \(f\).
+
+    \item Überlappt \([l, r]\) vollständig mit \([i,j]\)?
+        Dann \(F \leftarrow f(F, f(a[l, r]))\).
+
+    \item Überlappt \([l, r]\) überhaupt nicht mit \([i,j]\)?
+        Dann lasse \(F\) gleich.
+
+    \item Überlappt \([l, r]\) teilweise mit \([i,j]\)?
+        Die Mitte ist \(\lfloor(l+r)/2\rfloor\).
+        Mache mit \([l, m]\) und \([m+1, r]\) rekursiv weiter.
+\end{enumerate}
+Insgesamt müssen also nur \(\O(\log n)\) Einträge ausgewertet werden.
+Das Point-Update funktioniert genau wie bei den Fenwick-Bäumen -- ein Update wird den jeweiligen Elternknoten weitergegeben.
+
+Das Range Update würde naiv im worst case \(2n-1\) Updates nötig machen, weswegen sogenannte \emph{Lazy Updates} meistens verwendet werden, die Updates erst ausführen, wenn sie bei einer Range-Query relevant wären.
+Man kann sowas implementieren, indem man die Updates in den Blattknoten vormerkt, und dann bei der Auswertung einer Query, alle relevanten Updates backpropagiert.
+Somit bleibt man bei \(\O(\log n)\) bei einer Range Query, und ein Range Update kann mit minimalen Overhead \(\O(\log n)\) realisiert werden.
