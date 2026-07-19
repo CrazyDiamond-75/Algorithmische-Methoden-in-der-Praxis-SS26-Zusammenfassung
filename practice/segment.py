@@ -67,6 +67,20 @@ class ST:
 
         return query_helper(0)
 
+    def point_update(self, i, v):
+        # length of leaf data
+        n = (len(self.tree) + 1) // 2
+        # Adjust index to tree node
+        i += n - 1
+
+        # Set and backpropagate again
+        self.tree[i] = v
+        while (
+            i := parent(i)
+        ) >= 0:  # Infinite loop shouldn't be possible, but safer is safer.
+            c1, c2 = children(i)
+            self.tree[i] = self.f([self.tree[c1], self.tree[c2]])
+
 
 # Product of a list
 def prod(lst):
@@ -77,6 +91,7 @@ def prod(lst):
 
 
 # Example test
+"""
 n = 10
 example = list(range(1, n + 1))
 st = ST(example, prod, 1)
@@ -84,3 +99,13 @@ st = ST(example, prod, 1)
 for i in range(n):
     for j in range(i, n):
         print(i + 1, j + 1, st.query(i, j))
+"""
+
+# Point update test
+"""
+example = [1, 2, 3, 4, 5]
+st = ST(example, sum, 0)
+print(st.query(2, 4))
+st.point_update(2, 9)
+print(st.query(2, 4))
+"""
